@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.animation import FuncAnimation
 from seaborn.palettes import blend_palette
+import tempfile
 
 st.title('TROCAL Simulator - Simulation of heat transfer in a double pipe heat exchanger')
 st.write('This is a simulator of a double pipe heat exchanger operating in parallel flow. When running the simulation, you will be able to visualize the temperature profile of fluids 1 (cold) and 2 (warm) as time progresses. You will also be able to view the plot of the temperature variation of fluids 1 and 2 when the heat exchanger reaches steady state.')
@@ -74,22 +75,34 @@ def run_simulation(L, r1, r2, n, m1, Cp1, rho1, m2, Cp2, rho2, T1i, T2i, T0, U, 
     # Criação e exibição da figura 1
     fig_ani1 = plt.figure(figsize=(8,6))
     ani1 = FuncAnimation(fig_ani1, update_plot1, frames=df_Temp1.shape[0], repeat=False)
-    save1 = ani1.save('Temperature Variation - Fluid 1.gif', writer='pillow', fps=10)
+    #save1 = ani1.save('Temperature Variation - Fluid 1.gif', writer='pillow', fps=10)
+
+    # Criar arquivo temporário
+    with tempfile.NamedTemporaryFile(suffix=".gif", delete=False) as tmpfile1:
+        ani1.save(tmpfile1.name, writer="pillow", fps=10)
+        tmpfile1.seek(0)
+        gif_bytes1 = tmpfile1.read()
     
     # Criação e exibição da figura 2
     fig_ani2 = plt.figure(figsize=(8,6))
     ani2 = FuncAnimation(fig_ani2, update_plot2, frames=df_Temp2.shape[0], repeat=False)
-    save2 = ani2.save('Temperature Variation - Fluid 2.gif', writer='pillow', fps=10)
+    #save2 = ani2.save('Temperature Variation - Fluid 2.gif', writer='pillow', fps=10)
+
+    # Criar arquivo temporário
+    with tempfile.NamedTemporaryFile(suffix=".gif", delete=False) as tmpfile2:
+        ani2.save(tmpfile2.name, writer="pillow", fps=10)
+        tmpfile2.seek(0)
+        gif_bytes2 = tmpfile2.read()
     
     # Exibindo a simulação
     with st.expander("Real-Time Simulation Visualization for Fluid 1 (cold) (Click here to view)"):
         st.write('Temperature variation of fluid 1 (cold) over time and along length.')
         st.write('Time is shown above the GIF in seconds. Temperatures (in Kelvin) are displayed on the variable y-axis scale. The length of the heat exchanger is represented in meters along the GIF’s x-axis.')
-        st.image('Temperature Variation - Fluid 1.gif')
+        st.image(gif_bytes1)
     with st.expander("Real-Time Simulation Visualization for Fluid 2 (warm) (Click here to view)"):
         st.write('Temperature variation of fluid 2 (warm) over time and along length.')
         st.write('Time is shown above the GIF in seconds. Temperatures (in Kelvin) are displayed on the variable y-axis scale. The length of the heat exchanger is represented in meters along the GIF’s x-axis.')
-        st.image('Temperature Variation - Fluid 2.gif')
+        st.image(gif_bytes2)
         
     # Exibindo o gráfico de variação da temperatura ao longo do comprimento em regime permanente para ambos os fluidos
     plt.figure(fig_permanente)
@@ -126,3 +139,4 @@ if st.button('Run Simulation'):
     run_simulation(L, r1, r2, n, m1, Cp1, rho1, m2, Cp2, rho2, T1i, T2i, T0, U, dx, t_final, dt)
 elif st.button('Run Standard Example'):
     run_simulation(10, 0.1, 0.15, 10, 3, 4180, 995.61, 5, 4180, 995.61, 400, 800, 300, 1500, 10 / 10, 100, 1)
+
